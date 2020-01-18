@@ -1,0 +1,251 @@
+﻿Version=2.5
+IconFile=
+NumberOfModules=0
+Package=com.shengji.testRemoteSound
+DoNotOverwriteManifest=False
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: http://www.basic4ppc.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="4" android:targetSdkVersion="14"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~'End of default text.~\n~AddPermission(android.permission.INTERNET)~\n~AddPermission(android.permission.READ_PHONE_STATE)~\n~AddPermission(android.permission.ACCESS_NETWORK_STATE)~\n~AddPermission(android.permission.ACCESS_COARSE_LOCATION)~\n~~\n~AddPermission(android.permission.WRITE_EXTERNAL_STORAGE)~\n~AddPermission(android.permission.ACCESS_WIFI_STATE)~\n~AddPermission(android.permission.CHANGE_WIFI_STATE)~\n~~\n~AddPermission(com.android.browser.permission.READ_HISTORY_BOOKMARKS)~\n~AddApplicationText(~\n~	<!-- 注册AppActivity -->~\n~	<activity android:name="com.baidu.mobads.AppActivity" android:configChanges="keyboard|keyboardHidden|orientation" />~\n~	<!-- 您从百度移动联盟网站获取的APPSID -->~\n~	<meta-data android:name="BaiduMobAd_APP_ID" android:value="f2fdaaa0" /> ~\n~	<!-- 您从百度移动联盟网站获取的计费名 -->~\n~	<meta-data android:name="BaiduMobAd_APP_SEC" android:value="f2fdaaa0" />	~\n~	<meta-data android:name="tapjoy.store_name" android:value="gfan" />~\n~)~\n~
+UserTypesHint=
+NumberOfFiles=1
+File1=trom.wav
+NumberOfLibraries=10
+Library1=acceleratedsurface
+Library2=audiorecord
+Library3=audiotrack
+Library4=baiduadview
+Library5=byteconverter
+Library6=core
+Library7=network
+Library8=phone
+Library9=randomaccessfile
+Library10=threading
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: PC音频接收器
+	#VersionCode: 1
+	#VersionName: 1.0
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: unspecified
+	#CanInstallToExternalStorage: true
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: False
+	#IncludeTitle: True
+#End Region
+
+Sub Process_Globals
+	Dim bStop As Boolean = False
+	Dim RecData() As Byte
+	
+'	Dim ThreadRemote As Thread	
+
+'	Dim bPlay As Boolean
+'	Dim bYesPlay As Boolean	
+'	Dim UDPSocket1 As UDPSocket
+'	
+'	Dim BufferSize,BufferSizeT As Int
+'	Dim AudioTrack1 As AudioTrack
+'	
+'	Dim adata() As Byte
+'	Dim pdata() As Byte
+'	Dim adataOffset As Int = 0
+'	Dim pdataOffset As Int = 0	
+'	Dim ByteConverter1 As ByteConverter
+End Sub
+
+Sub Globals
+	Dim aWake As PhoneWakeState
+	
+	Dim BufferSize,BufferSizeT As Int
+	Dim SampleRate As Int
+	Dim AudioFormat As Int
+	Dim AudioSource As Int
+	
+	Dim BitsPerSample,DataSize As Int
+	
+	Dim AudioRecord1 As AudioRecord
+	Dim AudioTrack1 As AudioTrack
+	
+	Dim ThreadRemote As Thread	
+	Dim bPlay As Boolean
+	Dim bYesPlay As Boolean
+	Dim UDPSocket1 As UDPSocket
+
+	Dim btnStartStop As Button
+'	Dim lblIsGo As Label
+	Dim lblTipIp As Label
+	Dim EditText1 As EditText
+	Dim rndStr As String 
+
+	Dim adata() As Byte
+	Dim pdata() As Byte
+	Dim adataOffset As Int = 0
+	Dim pdataOffset As Int = 0
+	Dim ByteConverter1 As ByteConverter
+	
+	'画点动画看看
+	Dim ASF As AcceleratedSurface
+
+	'============================baidu广告
+	Dim pnlAD As Panel
+	Dim BaiduAd As BaiduAdView
+	Dim adHeight As Int = 42dip
+	'============================	
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	'所有测试代码到上一个版本代码里面了。
+
+	SampleRate=11025
+	AudioFormat=AudioRecord1.Af_PCM_16
+	BitsPerSample=16	
+	
+	If False = File.Exists(File.DirInternal,"config.ini") Then
+		Try
+			File.OpenOutput(File.DirInternal,"config.ini",False)
+		Catch
+		End Try
+	End If
+	
+	bPlay = True
+	bYesPlay = False
+	ThreadRemote.Initialise("ThreadRemote")
+	ThreadRemote.Start(Me,"NetPlay",Null)
+
+End Sub
+
+Sub Activity_Resume
+	If False = btnStartStop.IsInitialized Then		
+		btnStartStop.Initialize("btnStartStop")
+		btnStartStop.Text = "我要上线"
+		Activity.AddView(btnStartStop,80dip,0,200dip,60dip)
+		
+	lblTipIp.Initialize("lblTipIp")
+	lblTipIp.Text = "Server IP:"
+	Activity.AddView(lblTipIp,0,80dip,100dip,60dip)
+		
+		EditText1.Initialize("EditText1")
+		EditText1.Text = ReadIp
+		Activity.AddView(EditText1,80dip,60dip,200dip,60dip)
+		
+'		lblIsGo.Initialize("lblIsGo")
+'		lblIsGo.Text = "00000000"
+'		Activity.AddView(lblIsGo,80dip,120dip,200dip,60dip)
+		
+'		ASF.Initialize("ASF",True)
+'		ASF.Color = Colors.Transparent
+'		Activity.AddView(ASF,0,150dip,100%x,90dip)
+	
+		'=====================老是忘记：加了广告控件，忘记配置xml
+		pnlAD.Initialize("pnlAD")
+		'pnlAD.Color = Colors.Transparent
+		Activity.AddView(pnlAD,0dip,100%y-adHeight,100%x,adHeight)
+		BaiduAd.SetAppSidSec("f2fdaaa0","f2fdaaa0") '("debug","debug")' b885a218 yes
+'		BaiduAd.SetAppSidSec("debug","debug")
+		BaiduAd.Initialize("BaiduAd",pnlAD)
+		pnlAD.Color = Colors.Transparent	
+	End If
+	aWake.KeepAlive(True)
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+'	If AudioTrack1.IsInitialized Then
+'		AudioTrack1.Release
+'	End If
+'	aWake.ReleaseKeepAlive
+'	ExitApplication
+End Sub
+
+Sub UDPSocket1_PacketArrived (Packet As UDPPacket)
+'	Log(Packet.Length)
+	ByteConverter1.ArrayCopy(Packet.Data,Packet.Offset,adata,0,Packet.Length)
+'	rndStr = "00000000" & Rnd(1,1000000)
+'	lblIsGo.Text = rndStr.SubString(rndStr.Length-8)
+'	Log("Packet.Host:" & Packet.Host)
+'	Log("Packet.Port:" & Packet.Port)	
+'	ASF.Invalidate '就画
+End Sub
+
+Sub NetPlay()		
+'回音、颤音的解决：知道了AudioTrack1的最小缓存，VC中的录音缓存设置倍数即可，解决了，延迟没有解决。
+
+	BufferSizeT=AudioTrack1.GetMinBuffersize(SampleRate,AudioTrack1.CH_CONF_MONO,AudioFormat)
+	Log("BufferSizeT=" & BufferSizeT) 
+	UDPSocket1.Initialize("UDPSocket1",32100,BufferSizeT)
+
+	AudioTrack1.Initialize(AudioTrack1.Stream_Music,SampleRate,AudioTrack1.CH_CONF_MONO, _
+		AudioFormat,BufferSizeT,AudioTrack1.Mode_Stream)		
+	If AudioTrack1.GetState < 0 Then
+		Msgbox("初始化AudioTrack失败","初始化失败")
+		Activity.Finish
+	End If		
+	Dim adata(BufferSizeT) As Byte
+	Dim pdata(BufferSizeT) As Byte
+	
+	AudioTrack1.Play
+	Do While True=bPlay		
+		ByteConverter1.ArrayCopy(adata,0,pdata,0,BufferSizeT)
+		AudioTrack1.WriteByte(pdata,0,BufferSizeT)			
+	Loop
+End Sub
+
+Sub ThreadRemote_Ended(endedOK As Boolean, error As String) 
+	'The thread has terminated. If endedOK is False error holds the reason for failure
+	If False = endedOK Then
+		Log(error)
+	End If
+	AudioTrack1.Release
+End Sub
+
+Sub btnStartStop_Click
+
+	WriteIP(EditText1.Text)
+'	UDPSocket1.Initialize("UDPSocket1",3100,128)
+	Dim xxx As UDPPacket
+	
+	Dim a() As Byte
+'	a = "ljygood".GetBytes("UTF8")
+'	
+'	Dim sss As ServerSocket
+'	Dim strIp As String
+'	strIp = sss.GetMyIP
+'	a = strIp.GetBytes("UTF8")
+	
+	'If the value of EditText1.text Is 192.168.1.9 it works fine
+	'If the value of EditText1.text Is 255.255.255.255 it does Not work. 广播要权限
+	'I need To be able To send a message from the tablet To a PC In order To find the server's (PC) IP address. 	
+	'AddPermission(android.permission.CHANGE_WIFI_MULTICAST_STATE)
+	
+	'xxx.Initialize2(a,0,20,"192.168.0.101",22100)
+	'xxx.Initialize(a,"192.168.0.100",32100)   '发给自己可以收到正确字符串
+	
+	'这个音频播放缓存值必须告诉服务器，因为不同手机返回的不一样，服务器做广播时可能参考
+	BufferSizeT=AudioTrack1.GetMinBuffersize(SampleRate,AudioTrack1.CH_CONF_MONO,AudioFormat)	
+	Dim str As String
+	str = BufferSizeT
+	a = str.GetBytes("UTF8")
+	
+	xxx.Initialize(a,EditText1.Text.Trim,22100)	
+	UDPSocket1.Send(xxx)  '电脑收到ok	
+End Sub
+
+Sub ASF_Draw(AC As AS_Canvas)
+	For x = 1 To pdata.Length - 1 Step 2
+		AC.DrawLine(x-1,ASF.Height - pdata(x-1) Mod ASF.Height,x,ASF.Height - pdata(x) Mod ASF.Height,Colors.Green,0.2,True)
+	Next
+End Sub
+
+Sub WriteIP(ip As String)
+	Dim m As Map
+	m.Initialize
+	m.Put("IP",ip)
+	File.WriteMap(File.DirInternal,"config.ini",m)
+End Sub
+
+Sub ReadIp() As String
+	Dim m As Map
+	m.Initialize	
+	m = File.ReadMap(File.DirInternal,"config.ini")
+	Dim ip As String = m.Get("IP")
+	Return ip
+End Sub
